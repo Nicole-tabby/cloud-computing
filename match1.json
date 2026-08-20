@@ -1,0 +1,28 @@
+{
+  "match_id": "M1001",
+  "teams": {
+    "team_a": "India",
+    "team_b": "Australia"
+  },
+  "venue": "Wankhede Stadium, Mumbai",
+  "date": "2026-08-10",
+  "result": {
+    "winner": "India",
+    "margin": "6 wickets"
+  },
+  "innings": [
+    {
+      "team": "Australia",
+      "runs": 287,
+      "wickets": 9,
+      "overs": 50.0
+    },
+    {
+      "team": "India",
+      "runs": 288,
+      "wickets": 4,
+      "overs": 47.3
+    }
+  ],
+  "player_of_match": "Virat Kohli"
+}

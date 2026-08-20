@@ -1,0 +1,28 @@
+{
+  "match_id": "M1002",
+  "teams": {
+    "team_a": "England",
+    "team_b": "South Africa"
+  },
+  "venue": "Lord's, London",
+  "date": "2026-08-14",
+  "result": {
+    "winner": "South Africa",
+    "margin": "34 runs"
+  },
+  "innings": [
+    {
+      "team": "South Africa",
+      "runs": 312,
+      "wickets": 7,
+      "overs": 50.0
+    },
+    {
+      "team": "England",
+      "runs": 278,
+      "wickets": 10,
+      "overs": 46.2
+    }
+  ],
+  "player_of_match": "Kagiso Rabada"
+}
