@@ -5,3 +5,6 @@
 .terraform.lock.hcl
 crash.log
 upload/
+.wrangler/ 
+Notes/ 
+Object Storage assignment.pdf node_modules/ 
