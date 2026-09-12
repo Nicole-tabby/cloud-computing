@@ -1,0 +1,20 @@
+name = "weather-data-fetcher-24ug00216"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Runs once a day at 06:00 UTC. Cron syntax: minute hour day month weekday
+[triggers]
+crons = ["0 6 * * *"]
+
+# D1 database binding - "DB" is how the Worker code refers to it (env.DB)
+[[d1_databases]]
+binding = "DB"
+database_name = "weather-data-24ug00216"
+database_id = "9468343c-361e-420b-bbbb-ff6c8c2b3878"
+
+# Default location to fetch weather for - change these to your city's
+# coordinates (search "[city name] latitude longitude" to find them)
+[vars]
+LOCATION_LAT = "12.9716"
+LOCATION_LON = "77.5946"
+LOCATION_NAME = "Bengaluru"
