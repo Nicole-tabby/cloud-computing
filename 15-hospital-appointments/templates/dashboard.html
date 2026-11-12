@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Appointment Dashboard</h3>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ total_doctors }}</h2>Doctors</div></div>
+  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ total_patients }}</h2>Patients</div></div>
+  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ status_counts.get('Booked', 0) }}</h2>Booked</div></div>
+  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ status_counts.get('Cancelled', 0) }}</h2>Cancelled</div></div>
+</div>
+
+<div class="row">
+  <div class="col-md-7">
+    <h5>Upcoming Appointments</h5>
+    <table class="table table-striped bg-white">
+      <thead><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Patient</th></tr></thead>
+      <tbody>
+      {% for r in upcoming %}
+        <tr><td>{{ r.appointments.date }}</td><td>{{ r.appointments.time }}</td>
+            <td>{{ r.doctor }}</td><td>{{ r.appointments.patient }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="text-muted">No upcoming appointments.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="col-md-5">
+    <h5>Booked per Doctor</h5>
+    <table class="table table-striped bg-white">
+      <thead><tr><th>Doctor</th><th>Specialization</th><th>Booked</th></tr></thead>
+      <tbody>
+      {% for d in per_doctor %}
+        <tr><td>{{ d.doctor }}</td><td>{{ d.specialization }}</td><td>{{ d.booked }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

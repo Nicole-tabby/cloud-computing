@@ -1,5 +1,6 @@
 import os
 import re
+import datetime
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
@@ -16,9 +17,17 @@ doctors = db["doctors"]
 patients = db["patients"]
 
 
+def patient_has_conflict(patient_id, date, time, exclude_appt_id=None):
+    """True if this patient already has a Booked appointment at this date/time with ANY doctor."""
+    elem = {"patient_id": patient_id, "date": date, "time": time, "status": "Booked"}
+    if exclude_appt_id:
+        elem["_id"] = {"$ne": ObjectId(exclude_appt_id)}
+    return doctors.find_one({"appointments": {"$elemMatch": elem}}) is not None
+
+
 @app.route("/")
 def home():
-    return redirect(url_for("register_doctor"))
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/doctors/register", methods=["GET", "POST"])
@@ -67,6 +76,7 @@ def register_patient():
 
     return render_template("register_patient.html", patients=list(patients.find()))
 
+
 @app.route("/appointments/book", methods=["GET", "POST"])
 def book_appointment():
     if request.method == "POST":
@@ -74,6 +84,10 @@ def book_appointment():
         patient = patients.find_one({"_id": ObjectId(request.form["patient_id"])})
         date = request.form["date"]
         time = request.form["time"]
+
+        if patient_has_conflict(patient["_id"], date, time):
+            flash(f"{patient['name']} already has an appointment at that date and time.", "danger")
+            return redirect(url_for("book_appointment"))
 
         appt = {
             "_id": ObjectId(),
@@ -121,8 +135,7 @@ def search_appointments():
     pipeline = [{"$unwind": "$appointments"}, {"$match": match},
                 {"$sort": {"appointments.date": 1, "appointments.time": 1}}]
     results = list(doctors.aggregate(pipeline))
-    return render_template("search.html", results=results,
-                           q=request.args)
+    return render_template("search.html", results=results, q=request.args)
 
 
 @app.route("/appointments/<doctor_id>/<appt_id>/cancel", methods=["POST"])
@@ -143,6 +156,72 @@ def delete_appointment(doctor_id, appt_id):
     )
     flash("Appointment deleted.", "secondary")
     return redirect(request.referrer or url_for("search_appointments"))
+
+
+@app.route("/dashboard")
+def dashboard():
+    today = datetime.date.today().isoformat()
+
+    status_counts = {r["_id"]: r["count"] for r in doctors.aggregate([
+        {"$unwind": "$appointments"},
+        {"$group": {"_id": "$appointments.status", "count": {"$sum": 1}}}
+    ])}
+
+    upcoming = list(doctors.aggregate([
+        {"$unwind": "$appointments"},
+        {"$match": {"appointments.status": "Booked",
+                    "appointments.date": {"$gte": today}}},
+        {"$sort": {"appointments.date": 1, "appointments.time": 1}},
+        {"$limit": 10}
+    ]))
+
+    per_doctor = list(doctors.aggregate([
+        {"$project": {"doctor": 1, "specialization": 1,
+                      "booked": {"$size": {"$filter": {
+                          "input": "$appointments", "as": "a",
+                          "cond": {"$eq": ["$$a.status", "Booked"]}}}}}}
+    ]))
+
+    return render_template("dashboard.html",
+                           total_doctors=doctors.count_documents({}),
+                           total_patients=patients.count_documents({}),
+                           status_counts=status_counts,
+                           upcoming=upcoming,
+                           per_doctor=per_doctor)
+
+
+@app.route("/appointments/<doctor_id>/<appt_id>/reschedule", methods=["GET", "POST"])
+def reschedule_appointment(doctor_id, appt_id):
+    doc = doctors.find_one({"_id": ObjectId(doctor_id)})
+    appt = None
+    if doc:
+        appt = next((a for a in doc["appointments"] if str(a["_id"]) == appt_id), None)
+    if not appt:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for("search_appointments"))
+
+    if request.method == "POST":
+        new_date = request.form["date"]
+        new_time = request.form["time"]
+        conflict = any(
+            a["date"] == new_date and a["time"] == new_time
+            and a["status"] == "Booked" and str(a["_id"]) != appt_id
+            for a in doc["appointments"])
+        if conflict:
+            flash("That slot is already taken for this doctor.", "danger")
+        elif patient_has_conflict(appt["patient_id"], new_date, new_time, exclude_appt_id=appt_id):
+            flash(f"{appt['patient']} already has an appointment at that date and time.", "danger")
+        else:
+            doctors.update_one(
+                {"_id": ObjectId(doctor_id), "appointments._id": ObjectId(appt_id)},
+                {"$set": {"appointments.$.date": new_date,
+                          "appointments.$.time": new_time,
+                          "appointments.$.status": "Booked"}})
+            flash("Appointment rescheduled.", "success")
+            return redirect(url_for("search_appointments"))
+
+    return render_template("reschedule.html", doctor=doc, appt=appt)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG") == "1")

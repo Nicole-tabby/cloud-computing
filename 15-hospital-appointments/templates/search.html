@@ -21,6 +21,7 @@
       <td>{{ r.appointments.time }}</td><td>{{ r.appointments.status }}</td>
       <td>
         {% if r.appointments.status == 'Booked' %}
+        <a class="btn btn-sm btn-secondary" href="{{ url_for('reschedule_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">Reschedule</a>
         <form method="post" class="d-inline" action="{{ url_for('cancel_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">
           <button class="btn btn-sm btn-warning">Cancel</button></form>
         {% endif %}
