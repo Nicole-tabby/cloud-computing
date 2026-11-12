@@ -7,4 +7,8 @@ crash.log
 upload/
 .wrangler/ 
 Notes/ 
-Object Storage assignment.pdf node_modules/ 
+Object Storage assignment.pdf 
+node_modules/ 
+.env
+venv/
+__pycache__/
