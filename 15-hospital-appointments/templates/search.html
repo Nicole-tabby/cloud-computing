@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Appointment Search</h3>
+<form method="get" class="card card-body mb-4">
+  <div class="row g-3">
+    <div class="col-md-3"><input class="form-control" name="doctor" placeholder="Doctor" value="{{ q.get('doctor','') }}"></div>
+    <div class="col-md-3"><input class="form-control" name="specialization" placeholder="Specialization" value="{{ q.get('specialization','') }}"></div>
+    <div class="col-md-3"><input class="form-control" name="patient" placeholder="Patient" value="{{ q.get('patient','') }}"></div>
+    <div class="col-md-3"><input class="form-control" type="date" name="date" value="{{ q.get('date','') }}"></div>
+  </div>
+  <button class="btn btn-primary mt-3">Search</button>
+</form>
+
+<table class="table table-striped bg-white">
+  <thead><tr><th>Doctor</th><th>Specialization</th><th>Patient</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for r in results %}
+    <tr>
+      <td>{{ r.doctor }}</td><td>{{ r.specialization }}</td>
+      <td>{{ r.appointments.patient }}</td><td>{{ r.appointments.date }}</td>
+      <td>{{ r.appointments.time }}</td><td>{{ r.appointments.status }}</td>
+      <td>
+        {% if r.appointments.status == 'Booked' %}
+        <form method="post" class="d-inline" action="{{ url_for('cancel_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">
+          <button class="btn btn-sm btn-warning">Cancel</button></form>
+        {% endif %}
+        <form method="post" class="d-inline" action="{{ url_for('delete_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">
+          <button class="btn btn-sm btn-danger">Delete</button></form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="text-muted">No appointments found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
