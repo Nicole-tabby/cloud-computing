@@ -1,25 +1,42 @@
 {% extends "base.html" %}
+{% block title %}Patients · Hospital Appointments{% endblock %}
 {% block content %}
-<h3>Patient Registration</h3>
-<form method="post" class="card card-body mb-4">
-  <div class="row g-3">
-    <div class="col-md-6"><input class="form-control" name="name" placeholder="Patient name" required></div>
-    <div class="col-md-6"><input class="form-control" type="number" name="age" placeholder="Age" min="0" required></div>
-    <div class="col-md-6"><input class="form-control" name="phone" placeholder="Phone"></div>
-    <div class="col-md-6"><input class="form-control" type="email" name="email" placeholder="Email"></div>
-  </div>
-  <button class="btn btn-primary mt-3">Register Patient</button>
-</form>
+<div class="page-head">
+  <h1>Patient registration</h1>
+  <p>Register a new patient and see everyone in the system.</p>
+</div>
 
-<h5>Registered Patients</h5>
-<table class="table table-striped bg-white">
-  <thead><tr><th>Name</th><th>Age</th><th>Phone</th><th>Email</th></tr></thead>
-  <tbody>
-  {% for p in patients %}
-    <tr><td>{{ p.name }}</td><td>{{ p.age }}</td><td>{{ p.phone }}</td><td>{{ p.email }}</td></tr>
-  {% else %}
-    <tr><td colspan="4" class="text-muted">No patients yet.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="grid-form">
+  <form method="post" class="card">
+    <h2 class="section">New patient</h2>
+    <label class="field"><span>Patient name</span>
+      <input type="text" name="name" placeholder="e.g. Anita" required></label>
+    <label class="field"><span>Age</span>
+      <input type="number" name="age" placeholder="Age" min="0" required></label>
+    <label class="field"><span>Phone</span>
+      <input type="text" name="phone" placeholder="Phone number"></label>
+    <label class="field"><span>Email</span>
+      <input type="email" name="email" placeholder="patient@email.com"></label>
+    <button class="btn btn-primary btn-block">Register patient</button>
+  </form>
+
+  <div class="card flush">
+    <div class="card-title-row"><h2>Registered patients ({{ patients|length }})</h2></div>
+    <table class="data">
+      <thead><tr><th>Patient</th><th>Age</th><th>Phone</th><th>Email</th></tr></thead>
+      <tbody>
+      {% for p in patients %}
+        <tr>
+          <td><div class="person"><div class="avatar green">{{ p.name[:1]|upper }}</div><strong>{{ p.name }}</strong></div></td>
+          <td>{{ p.age }}</td>
+          <td>{{ p.phone }}</td>
+          <td>{{ p.email }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="empty">No patients yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

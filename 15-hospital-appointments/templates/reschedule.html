@@ -1,13 +1,31 @@
 {% extends "base.html" %}
+{% block title %}Reschedule · Hospital Appointments{% endblock %}
 {% block content %}
-<h3>Reschedule Appointment</h3>
-<p>{{ appt.patient }} with {{ doctor.doctor }} (currently {{ appt.date }} at {{ appt.time }})</p>
-<form method="post" class="card card-body">
-  <div class="row g-3">
-    <div class="col-md-6"><input class="form-control" type="date" name="date" value="{{ appt.date }}" required></div>
-    <div class="col-md-6"><input class="form-control" type="time" name="time" value="{{ appt.time }}" required></div>
+<div class="page-head">
+  <h1>Reschedule appointment</h1>
+  <p>Pick a new date and time. Conflicts are checked for both the doctor and the patient.</p>
+</div>
+
+<div style="max-width:560px">
+  <div class="card" style="margin-bottom:20px">
+    <div class="person">
+      <div class="avatar">{{ doctor.doctor.replace('Dr. ', '').replace('Dr ', '')[:1]|upper }}</div>
+      <div>
+        <div style="font-weight:600">{{ appt.patient }} with {{ doctor.doctor }}</div>
+        <div style="color:var(--muted);font-size:14px">Currently {{ appt.date }} at {{ appt.time }} &middot; {{ appt.status }}</div>
+      </div>
+    </div>
   </div>
-  <button class="btn btn-primary mt-3">Save New Time</button>
-  <a class="btn btn-link mt-3" href="{{ url_for('search_appointments') }}">Back</a>
-</form>
+
+  <form method="post" class="card">
+    <div class="form-row">
+      <label class="field"><span>New date</span>
+        <input type="date" name="date" value="{{ appt.date }}" required></label>
+      <label class="field"><span>New time</span>
+        <input type="time" name="time" value="{{ appt.time }}" required></label>
+    </div>
+    <button class="btn btn-primary">Save new time</button>
+    <a class="btn" href="{{ url_for('search_appointments') }}">Back</a>
+  </form>
+</div>
 {% endblock %}

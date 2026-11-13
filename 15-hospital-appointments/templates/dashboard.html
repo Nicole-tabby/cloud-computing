@@ -1,38 +1,94 @@
 {% extends "base.html" %}
+{% block title %}Dashboard · Hospital Appointments{% endblock %}
 {% block content %}
-<h3>Appointment Dashboard</h3>
-<div class="row g-3 mb-4">
-  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ total_doctors }}</h2>Doctors</div></div>
-  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ total_patients }}</h2>Patients</div></div>
-  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ status_counts.get('Booked', 0) }}</h2>Booked</div></div>
-  <div class="col-md-3"><div class="card card-body text-center"><h2>{{ status_counts.get('Cancelled', 0) }}</h2>Cancelled</div></div>
+{% set months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] %}
+
+<div class="hero">
+  <div class="eyebrow">Your health, our priority</div>
+  <h1><span id="greeting">Welcome</span>.<br>A clearer day. More time for care.</h1>
+  <p>Doctors, patients and appointments, together in one thoughtful workspace.</p>
+  <a class="btn btn-white" href="{{ url_for('book_appointment') }}">+ Book an appointment &rarr;</a>
 </div>
 
-<div class="row">
-  <div class="col-md-7">
-    <h5>Upcoming Appointments</h5>
-    <table class="table table-striped bg-white">
-      <thead><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Patient</th></tr></thead>
-      <tbody>
-      {% for r in upcoming %}
-        <tr><td>{{ r.appointments.date }}</td><td>{{ r.appointments.time }}</td>
-            <td>{{ r.doctor }}</td><td>{{ r.appointments.patient }}</td></tr>
-      {% else %}
-        <tr><td colspan="4" class="text-muted">No upcoming appointments.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+<div class="stats">
+  <div class="stat">
+    <div class="stat-icon blue">&#129658;</div>
+    <div class="num">{{ total_doctors }}</div>
+    <div class="label">Doctors</div>
   </div>
-  <div class="col-md-5">
-    <h5>Booked per Doctor</h5>
-    <table class="table table-striped bg-white">
-      <thead><tr><th>Doctor</th><th>Specialization</th><th>Booked</th></tr></thead>
-      <tbody>
-      {% for d in per_doctor %}
-        <tr><td>{{ d.doctor }}</td><td>{{ d.specialization }}</td><td>{{ d.booked }}</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="stat">
+    <div class="stat-icon green">&#128101;</div>
+    <div class="num">{{ total_patients }}</div>
+    <div class="label">Patients</div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon violet">&#128197;</div>
+    <div class="num">{{ status_counts.get('Booked', 0) }}</div>
+    <div class="label">Booked</div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon red">&#10005;</div>
+    <div class="num">{{ status_counts.get('Cancelled', 0) }}</div>
+    <div class="label">Cancelled</div>
   </div>
 </div>
+
+<div class="grid-main">
+  <div class="card flush">
+    <div class="card-title-row">
+      <h2>Upcoming appointments</h2>
+      <a href="{{ url_for('search_appointments') }}">View all &rarr;</a>
+    </div>
+    <ul class="list">
+      {% for r in upcoming %}
+      {% set a = r.appointments %}
+      <li>
+        <div class="date-badge">
+          <span class="d">{{ a.date[8:10] }}</span>
+          <span class="m">{{ months[(a.date[5:7]|int) - 1] }}</span>
+        </div>
+        <div class="grow">
+          <div class="title">{{ a.patient }}</div>
+          <div class="sub">with {{ r.doctor }} &middot; {{ r.specialization }}</div>
+        </div>
+        <div class="right">
+          <div><strong>{{ a.time }}</strong></div>
+          <span class="chip chip-booked">Booked</span>
+        </div>
+      </li>
+      {% else %}
+      <li class="empty" style="display:block;width:100%">No upcoming appointments. <a href="{{ url_for('book_appointment') }}">Book one</a>.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card flush">
+    <div class="card-title-row">
+      <h2>Booked per doctor</h2>
+      <a href="{{ url_for('register_doctor') }}">Doctors &rarr;</a>
+    </div>
+    <ul class="list">
+      {% for d in per_doctor %}
+      <li>
+        <div class="avatar">{{ d.doctor.replace('Dr. ', '').replace('Dr ', '')[:1]|upper }}</div>
+        <div class="grow">
+          <div class="title">{{ d.doctor }}</div>
+          <div class="sub">{{ d.specialization }}</div>
+        </div>
+        <div class="right"><strong>{{ d.booked }}</strong><div class="sub">booked</div></div>
+      </li>
+      {% else %}
+      <li class="empty" style="display:block;width:100%">No doctors yet. <a href="{{ url_for('register_doctor') }}">Register one</a>.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var h = new Date().getHours();
+    var g = h < 12 ? "Good morning" : (h < 17 ? "Good afternoon" : "Good evening");
+    document.getElementById("greeting").textContent = g;
+  })();
+</script>
 {% endblock %}

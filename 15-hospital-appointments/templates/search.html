@@ -1,37 +1,68 @@
 {% extends "base.html" %}
+{% block title %}Appointments · Hospital Appointments{% endblock %}
 {% block content %}
-<h3>Appointment Search</h3>
-<form method="get" class="card card-body mb-4">
-  <div class="row g-3">
-    <div class="col-md-3"><input class="form-control" name="doctor" placeholder="Doctor" value="{{ q.get('doctor','') }}"></div>
-    <div class="col-md-3"><input class="form-control" name="specialization" placeholder="Specialization" value="{{ q.get('specialization','') }}"></div>
-    <div class="col-md-3"><input class="form-control" name="patient" placeholder="Patient" value="{{ q.get('patient','') }}"></div>
-    <div class="col-md-3"><input class="form-control" type="date" name="date" value="{{ q.get('date','') }}"></div>
+{% set months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] %}
+<div class="page-head">
+  <h1>Appointments</h1>
+  <p>Search by doctor, specialization, patient or date. Leave a box empty to ignore it.</p>
+</div>
+
+<form method="get" class="card" style="margin-bottom:24px">
+  <div class="filter-bar">
+    <label class="field"><span>Doctor</span>
+      <input type="text" name="doctor" placeholder="Doctor" value="{{ q.get('doctor','') }}"></label>
+    <label class="field"><span>Specialization</span>
+      <input type="text" name="specialization" placeholder="Specialization" value="{{ q.get('specialization','') }}"></label>
+    <label class="field"><span>Patient</span>
+      <input type="text" name="patient" placeholder="Patient" value="{{ q.get('patient','') }}"></label>
+    <label class="field"><span>Date</span>
+      <input type="date" name="date" value="{{ q.get('date','') }}"></label>
+    <button class="btn btn-primary">Search</button>
   </div>
-  <button class="btn btn-primary mt-3">Search</button>
 </form>
 
-<table class="table table-striped bg-white">
-  <thead><tr><th>Doctor</th><th>Specialization</th><th>Patient</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
-  <tbody>
-  {% for r in results %}
-    <tr>
-      <td>{{ r.doctor }}</td><td>{{ r.specialization }}</td>
-      <td>{{ r.appointments.patient }}</td><td>{{ r.appointments.date }}</td>
-      <td>{{ r.appointments.time }}</td><td>{{ r.appointments.status }}</td>
-      <td>
-        {% if r.appointments.status == 'Booked' %}
-        <a class="btn btn-sm btn-secondary" href="{{ url_for('reschedule_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">Reschedule</a>
-        <form method="post" class="d-inline" action="{{ url_for('cancel_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">
-          <button class="btn btn-sm btn-warning">Cancel</button></form>
-        {% endif %}
-        <form method="post" class="d-inline" action="{{ url_for('delete_appointment', doctor_id=r._id, appt_id=r.appointments._id) }}">
-          <button class="btn btn-sm btn-danger">Delete</button></form>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" class="text-muted">No appointments found.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="card flush">
+  <div class="card-title-row"><h2>{{ results|length }} result{{ '' if results|length == 1 else 's' }}</h2></div>
+  <table class="data">
+    <thead>
+      <tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for r in results %}
+      {% set a = r.appointments %}
+      <tr>
+        <td>
+          <div class="person">
+            <div class="date-badge" style="width:46px">
+              <span class="d" style="font-size:17px">{{ a.date[8:10] }}</span>
+              <span class="m">{{ months[(a.date[5:7]|int) - 1] }}</span>
+            </div>
+            <span class="sub" style="color:var(--muted)">{{ a.date[:4] }}</span>
+          </div>
+        </td>
+        <td><strong>{{ a.time }}</strong></td>
+        <td>{{ a.patient }}</td>
+        <td>{{ r.doctor }}<div class="sub" style="color:var(--muted);font-size:13px">{{ r.specialization }}</div></td>
+        <td>
+          {% if a.status == 'Booked' %}<span class="chip chip-booked">Booked</span>
+          {% elif a.status == 'Cancelled' %}<span class="chip chip-cancelled">Cancelled</span>
+          {% else %}<span class="chip chip-other">{{ a.status }}</span>{% endif %}
+        </td>
+        <td class="actions">
+          <a class="btn btn-sm" href="{{ url_for('reschedule_appointment', doctor_id=r._id, appt_id=a._id) }}">Reschedule</a>
+          {% if a.status == 'Booked' %}
+          <form method="post" class="inline-form" action="{{ url_for('cancel_appointment', doctor_id=r._id, appt_id=a._id) }}">
+            <button class="btn btn-sm btn-warn">Cancel</button></form>
+          {% endif %}
+          <form method="post" class="inline-form" action="{{ url_for('delete_appointment', doctor_id=r._id, appt_id=a._id) }}"
+                onsubmit="return confirm('Delete this appointment permanently?');">
+            <button class="btn btn-sm btn-danger">Delete</button></form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="empty">No appointments found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

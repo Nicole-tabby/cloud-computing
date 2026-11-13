@@ -1,27 +1,57 @@
 {% extends "base.html" %}
+{% block title %}Book · Hospital Appointments{% endblock %}
 {% block content %}
-<h3>Book Appointment</h3>
-<form method="post" class="card card-body">
-  <div class="row g-3">
-    <div class="col-md-6">
-      <select class="form-select" name="doctor_id" required>
-        <option value="">Select doctor</option>
-        {% for d in doctors %}
-        <option value="{{ d._id }}">{{ d.doctor }} ({{ d.specialization }})</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-6">
-      <select class="form-select" name="patient_id" required>
+<div class="page-head">
+  <h1>Book an appointment</h1>
+  <p>Choose a patient, a doctor and a time that works.</p>
+</div>
+
+<div class="grid-form" style="grid-template-columns: minmax(0, 560px) 1fr;">
+  <form method="post" class="card">
+    <label class="field"><span>Patient</span>
+      <select name="patient_id" required>
         <option value="">Select patient</option>
         {% for p in patients %}
         <option value="{{ p._id }}">{{ p.name }}</option>
         {% endfor %}
-      </select>
+      </select></label>
+
+    <label class="field"><span>Doctor</span>
+      <select name="doctor_id" required>
+        <option value="">Select doctor</option>
+        {% for d in doctors %}
+        <option value="{{ d._id }}">{{ d.doctor }} &middot; {{ d.specialization }}</option>
+        {% endfor %}
+      </select></label>
+
+    <label class="field"><span>Appointment date</span>
+      <input type="date" name="date" id="date" required></label>
+
+    <span style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Time</span>
+    <div class="slots">
+      {% for t in ['09:00', '10:30', '11:30', '14:00', '15:30', '16:30'] %}
+      <input type="radio" name="time" id="t{{ loop.index }}" value="{{ t }}" required>
+      <label for="t{{ loop.index }}">{{ t }}</label>
+      {% endfor %}
     </div>
-    <div class="col-md-6"><input class="form-control" type="date" name="date" required></div>
-    <div class="col-md-6"><input class="form-control" type="time" name="time" required></div>
+
+    <button class="btn btn-primary btn-block">Confirm appointment &rarr;</button>
+    <p class="hint">A doctor can't have two bookings at the same time, and a patient can't be in two places at once.</p>
+  </form>
+
+  <div class="card">
+    <h2 class="section">Before you book</h2>
+    <p class="sub" style="color:var(--muted)">Need someone who isn't listed yet?</p>
+    <p><a class="btn" href="{{ url_for('register_patient') }}">Register a patient</a>
+       <a class="btn" href="{{ url_for('register_doctor') }}">Register a doctor</a></p>
+    <p class="hint">Booked, cancelled and rescheduled visits all appear under
+      <a href="{{ url_for('search_appointments') }}">Appointments</a>.</p>
   </div>
-  <button class="btn btn-primary mt-3">Book Appointment</button>
-</form>
+</div>
+
+<script>
+  var d = new Date();
+  var iso = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  document.getElementById("date").min = iso;
+</script>
 {% endblock %}
