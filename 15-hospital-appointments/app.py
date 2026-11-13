@@ -54,6 +54,27 @@ def register_doctor():
     return render_template("register_doctor.html", doctors=list(doctors.find()))
 
 
+@app.route("/doctors/<doctor_id>/delete", methods=["POST"])
+def delete_doctor(doctor_id):
+    doc = doctors.find_one({"_id": ObjectId(doctor_id)})
+    if not doc:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for("register_doctor"))
+
+    # Block removal while patients still hold upcoming bookings with this doctor
+    today = datetime.date.today().isoformat()
+    upcoming = [a for a in doc.get("appointments", [])
+                if a.get("status") == "Booked" and a.get("date", "") >= today]
+    if upcoming:
+        flash(f"{doc['doctor']} still has {len(upcoming)} upcoming booked appointment(s). "
+              "Cancel or reschedule them first, then delete the doctor.", "danger")
+        return redirect(url_for("register_doctor"))
+
+    doctors.delete_one({"_id": doc["_id"]})
+    flash(f"{doc['doctor']} was removed.", "secondary")
+    return redirect(url_for("register_doctor"))
+
+
 @app.route("/patients/register", methods=["GET", "POST"])
 def register_patient():
     if request.method == "POST":
@@ -75,6 +96,26 @@ def register_patient():
         return redirect(url_for("register_patient"))
 
     return render_template("register_patient.html", patients=list(patients.find()))
+
+
+@app.route("/patients/<patient_id>/delete", methods=["POST"])
+def delete_patient(patient_id):
+    pid = ObjectId(patient_id)
+    patient = patients.find_one({"_id": pid})
+    if not patient:
+        flash("Patient not found.", "danger")
+        return redirect(url_for("register_patient"))
+
+    # Appointments are embedded inside doctor documents, so remove them there too.
+    # Otherwise the patient's name would stay behind in the nested data.
+    removed = sum(1 for d in doctors.find({"appointments.patient_id": pid})
+                  for a in d["appointments"] if a.get("patient_id") == pid)
+    doctors.update_many({"appointments.patient_id": pid},
+                        {"$pull": {"appointments": {"patient_id": pid}}})
+    patients.delete_one({"_id": pid})
+
+    flash(f"{patient['name']} was removed, along with {removed} appointment(s).", "secondary")
+    return redirect(url_for("register_patient"))
 
 
 @app.route("/appointments/book", methods=["GET", "POST"])

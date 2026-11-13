@@ -23,7 +23,7 @@
   <div class="card flush">
     <div class="card-title-row"><h2>Registered patients ({{ patients|length }})</h2></div>
     <table class="data">
-      <thead><tr><th>Patient</th><th>Age</th><th>Phone</th><th>Email</th></tr></thead>
+      <thead><tr><th>Patient</th><th>Age</th><th>Phone</th><th>Email</th><th></th></tr></thead>
       <tbody>
       {% for p in patients %}
         <tr>
@@ -31,9 +31,15 @@
           <td>{{ p.age }}</td>
           <td>{{ p.phone }}</td>
           <td>{{ p.email }}</td>
+          <td class="actions">
+            <form method="post" class="inline-form" action="{{ url_for('delete_patient', patient_id=p._id) }}"
+                  onsubmit="return confirm('Permanently delete {{ p.name|e }} and ALL of their appointments? This cannot be undone.');">
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
         </tr>
       {% else %}
-        <tr><td colspan="4" class="empty">No patients yet.</td></tr>
+        <tr><td colspan="5" class="empty">No patients yet.</td></tr>
       {% endfor %}
       </tbody>
     </table>
